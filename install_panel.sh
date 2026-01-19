@@ -122,10 +122,10 @@ sleep 5
 
 # Create Database and User
 echo -e "${GREEN}[4/8] Setting up Database...${NC}"
-mysql -u root -e "CREATE DATABASE IF NOT EXISTS panel;"
-mysql -u root -e "CREATE USER IF NOT EXISTS 'pterodactyl'@'127.0.0.1' IDENTIFIED BY '$DB_PASSWORD';"
-mysql -u root -e "GRANT ALL PRIVILEGES ON panel.* TO 'pterodactyl'@'127.0.0.1' WITH GRANT OPTION;"
-mysql -u root -e "FLUSH PRIVILEGES;"
+mariadb -u root -e "CREATE DATABASE IF NOT EXISTS panel;"
+mariadb -u root -e "CREATE USER IF NOT EXISTS 'pterodactyl'@'127.0.0.1' IDENTIFIED BY '$DB_PASSWORD';"
+mariadb -u root -e "GRANT ALL PRIVILEGES ON panel.* TO 'pterodactyl'@'127.0.0.1' WITH GRANT OPTION;"
+mariadb -u root -e "FLUSH PRIVILEGES;"
 
 # 4. Install Pterodactyl Panel
 echo -e "${GREEN}[5/8] Downloading and Installing Pterodactyl Panel...${NC}"
@@ -161,7 +161,7 @@ echo -e "${YELLOW}Running Database Migrations...${NC}"
 php artisan migrate --seed --force
 
 # Check if user already exists to avoid "email taken" errors on re-runs
-USER_EXISTS=$(mysql -u root -s -N -e "SELECT EXISTS(SELECT 1 FROM panel.users WHERE email = '$EMAIL')")
+USER_EXISTS=$(mariadb -u root -s -N -e "SELECT EXISTS(SELECT 1 FROM panel.users WHERE email = '$EMAIL')")
 
 if [[ "$USER_EXISTS" -eq 0 ]]; then
     echo -e "${YELLOW}Creating Admin User...${NC}"
@@ -287,9 +287,40 @@ systemctl enable --now nginx
 systemctl restart nginx
 
 echo -e "${GREEN}Installation Complete!${NC}"
-echo -e "${YELLOW}You can now access your Pterodactyl Panel at http://$PANEL_URL${NC}"
+echo -e "${YELLOW}You can now access your Pterodactyl Panel at $PANEL_URL${NC}"
 echo -e "${YELLOW}Don't forget to configure SSL (e.g., using certbot)!${NC}"
 echo ""
 echo -e "${GREEN}FOR MINECRAFT SERVERS:${NC}"
-echo -e "You MUST install Wings (the daemon) to run game servers."
-echo -e "Please run the './install_wings.sh' script next."
+read -p "Do you want to install Wings (Daemon) too? (y/N): " INSTALL_WINGS
+if [[ "$INSTALL_WINGS" =~ ^[Yy]$ ]]; then
+    ./install_wings.sh
+else
+    echo -e "Okay. You can run './install_wings.sh' manually later."
+fi
+
+# --- Health Check Integration ---
+echo ""
+echo -e "${GREEN}[9/8] Running System Health Check...${NC}"
+
+# Helper function for health check (re-defined locally to ensure availability)
+check_status() {
+    if systemctl is-active --quiet "$1"; then
+        echo -e "[ ${GREEN}OK${NC} ] Service $1 is active."
+    else
+        echo -e "[${RED}FAIL${NC}] Service $1 is NOT active!"
+    fi
+}
+
+check_status "nginx"
+check_status "php-fpm"
+check_status "mariadb"
+check_status "redis"
+check_status "pteroq.service"
+
+# Check HTTP
+if curl -s --head --request GET http://localhost | grep "200 OK" > /dev/null; then
+     echo -e "[ ${GREEN}OK${NC} ] HTTP (Port 80) is responding 200 OK."
+else
+     echo -e "[${YELLOW}WARN${NC}] HTTP (Port 80) did not return 200 OK (Check Nginx logs)."
+fi
+echo ""
