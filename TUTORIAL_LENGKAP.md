@@ -6,7 +6,7 @@ Panduan ini akan membimbing kamu langkah demi langkah, mulai dari server kosong 
 
 1.  **Server/VPS** yang sudah terinstall **Arch Linux**.
 2.  **IP Address** server kamu (contoh: `103.123.45.67`).
-3.  **Domain**: Kalau belum punya domain, **PAKAI IP ADDRESS SAJA** tidak masalah. Nanti aksesnya lewat IP (contoh: `http://103.123.45.67`).
+3.  **Domain** (opsional tapi disarankan, contoh `panel.namadomain.com`) yang sudah diarahkan ke IP server.
 4.  Koneksi SSH ke server (sebagai `root`).
 
 ---
@@ -18,14 +18,14 @@ Login ke server kamu menggunakan SSH/Terminal:
 ssh root@ip-server-kamu
 ```
 
-Setelah masuk, download skrip installer ini:
+Setelah masuk, download skrip installer kita:
 ```bash
 # Install Git jika belum ada
 pacman -Sy --noconfirm git
 
-# Download skrip (Ganti URL ini dengan link repo kamu)
-git clone https://github.com/username/repo-ini.git
-cd repo-ini
+# Download skrip (Ganti URL ini dengan repo kamu nanti jika di upload, atau buat file manual)
+# Anggap kita membuat filenya sekarang:
+# (Kamu bisa copy-paste isi file install_panel.sh dan install_wings.sh ke server)
 
 # Berikan izin eksekusi
 chmod +x install_panel.sh install_wings.sh
@@ -42,11 +42,11 @@ Ini adalah tahap instalasi "Website" tempat kamu mengatur segalanya.
     ./install_panel.sh
     ```
 2.  Script akan meminta input. Isi sesuai dangan data kamu:
-    *   **FQDN / URL**: Masukkan domain kamu (misal: `panel.domainku.com`). **Jika tidak punya domain, masukkan IP PUBLIC server kamu** (misal: `103.123.45.67`).
+    *   **FQDN / URL**: Masukkan domain kamu (misal: `panel.domainku.com`). Jika tidak punya domain, masukkan IP server saja (misal: `103.123.45.67`).
     *   **Email**: Masukkan email kamu (ini untuk login Admin nanti).
     *   **Admin Password**: Buat password untuk login Admin Dashboard.
-    *   **Database Password**: Tekan *Enter* aja (biar auto-generate).
-    *   **Timezone**: Tekan *Enter* aja (default Asia/Jakarta).
+    *   **Database Password**: Tekan Enter aja (biar auto-generate).
+    *   **Timezone**: Tekan Enter aja (default Asia/Jakarta).
 
 3.  Tunggu proses instalasi selesai (bisa 5-10 menit tergantung internet server).
 4.  Jika sukses, akan muncul pesan:
@@ -59,9 +59,7 @@ Ini adalah tahap instalasi "Website" tempat kamu mengatur segalanya.
 Disini banyak orang bingung. Jangan jalankan script kedua dulu! Kita harus setting Panel via Browser.
 
 1.  Buka browser (Chrome/Edge) di laptop kamu.
-2.  Ketik alamat panel kamu.
-    *   Kalau pakai IP: `http://103.123.45.67`
-    *   Kalau pakai Domain: `http://panel.domainku.com`
+2.  Ketik alamat panel kamu (sesuai yang diinput tadi, misal `http://103.123.45.67` atau domain).
 3.  **Login** menggunakan Email dan Password yang kamu buat di Langkah 2.
 
 ### Registrasi "Node" (Mesin Server)
@@ -75,7 +73,7 @@ Agar panel bisa mengontrol server ini, kita harus mendaftarkannya sebagai "Node"
 3.  Di menu kiri, pilih **Nodes** -> klik **Create New**.
     *   **Name**: `LocalNode`
     *   **Location**: Pilih `home`.
-    *   **FQDN**: Tulis `127.0.0.1` (**PENTING**: Gunakan `127.0.0.1` karena Wings dan Panel ada di satu server yang sama. Jangan pakai IP Publik disini biar koneksinya lokal dan lancar).
+    *   **FQDN**: Tulis `127.0.0.1` (Penting: Gunakan ini karena Wings dan Panel ada di satu server yang sama).
     *   **Communicate Over SSL**: Pilih `Use HTTP Connection` (Kecuali kamu sudah pasang SSL/HTTPS).
     *   **Behind Proxy**: Pilih `Not behind Proxy`.
     *   **Daemon Port**: `8080`.
@@ -101,16 +99,15 @@ Kembali ke terminal/SSH server kamu.
     ./install_wings.sh
     ```
 2.  Script akan bertanya:
-    *   **"Do you have the Configuration YAML ready?"**: Ketik `y` lalu tekan *Enter*.
+    *   **"Do you have the Configuration YAML ready?"**: Ketik `y` lalu Enter.
     *   **Paste**: Paste kode yang tadi kamu copy dari browser.
-    *   **Simpan**: Setelah paste, tekan `Ctrl + D`.
-        *(Catatan: Di beberapa terminal Windows, kamu mungkin perlu tekan Enter dulu sekali baru Ctrl+D untuk mengirim sinyal EOF).*
+    *   **Simpan**: Setelah paste, tekan `Ctrl + D` (Di Windows kadang perlu Enter dulu baru Ctrl+D).
 
 3.  Script akan menginstall Docker dan menjalankan Wings.
 4.  Jika sukses, script akan bilang **"Wings should now be running!"**.
 
 **Cek Status:**
-Kembali ke Browser -> Menu **Nodes**. Lihat indikator di sebelah nama Node kamu. Jika warnanya **HIJAU** (icon jantung berdetak), artinya sukses!
+Kembali ke Browser -> Menu **Nodes**. Lihat indikator di sebelah nama Node kamu. Jika warnanya **HIJAU** (berdetak), artinya sukses!
 
 ---
 
