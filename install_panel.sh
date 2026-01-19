@@ -299,9 +299,23 @@ mkdir -p /etc/nginx/sites-enabled
 # We use 'server_name _;' as a fallback to ensure it works on IP address access too
 
 
+# Check if Port 80 is already in use by another process (that isn't our own nginx we just stopped)
+# We stopped nginx above, so if 80 is still taken, it's something else (like Apache).
+APP_PORT=80
+if lsof -i :80 >/dev/null 2>&1 || ss -lnt | grep :80 >/dev/null; then
+    echo -e "${RED}WARNING: Port 80 is already in use by another application!${NC}"
+    echo -e "${YELLOW}Nginx cannot bind to port 80.${NC}"
+    read -p "Enter an alternative port for Pterodactyl (default: 8081): " ALT_PORT
+    APP_PORT=${ALT_PORT:-8081}
+    echo -e "${GREEN}Using Port $APP_PORT for Pterodactyl.${NC}"
+    
+    # Update .env to reflect new port in APP_URL if needed, though usually just Nginx handles port
+    # But for clarity to user, we update expectations
+fi
+
 cat <<EOF > /etc/nginx/conf.d/pterodactyl.conf
 server {
-    listen 80;
+    listen $APP_PORT;
     server_name $PANEL_URL;
     root /var/www/pterodactyl/public;
     index index.php;
@@ -352,7 +366,11 @@ nginx -t
 systemctl restart nginx
 
 echo -e "${GREEN}Installation Complete!${NC}"
-echo -e "${YELLOW}You can now access your Pterodactyl Panel at $PANEL_URL${NC}"
+if [[ "$APP_PORT" != "80" ]]; then
+    echo -e "${YELLOW}You can now access your Pterodactyl Panel at http://$PANEL_URL:$APP_PORT${NC}"
+else
+    echo -e "${YELLOW}You can now access your Pterodactyl Panel at http://$PANEL_URL${NC}"
+fi
 echo -e "${YELLOW}Don't forget to configure SSL (e.g., using certbot)!${NC}"
 echo ""
 echo -e "${GREEN}FOR MINECRAFT SERVERS:${NC}"
