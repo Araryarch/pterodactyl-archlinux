@@ -160,13 +160,15 @@ sed -i "s|QUEUE_CONNECTION=sync|QUEUE_CONNECTION=redis|g" .env
 echo -e "${YELLOW}Running Database Migrations...${NC}"
 php artisan migrate --seed --force
 
-# Create User
-echo -e "${YELLOW}Creating Admin User...${NC}"
-# We use p:user:make which is interactive, but we can try to pass arguments if supported or use tinker.
-# As of recent versions, p:user:make requires interaction.
-# Let's use a tinker command to create the user non-interactively.
-# Use the native artisan command which handles validation and UUIDs properly
-php artisan p:user:make --email="$EMAIL" --username="admin" --name-first="Admin" --name-last="User" --password="$ADMIN_PASSWORD" --admin=1
+# Check if user already exists to avoid "email taken" errors on re-runs
+USER_EXISTS=$(mysql -u root -s -N -e "SELECT EXISTS(SELECT 1 FROM panel.users WHERE email = '$EMAIL')")
+
+if [[ "$USER_EXISTS" -eq 0 ]]; then
+    echo -e "${YELLOW}Creating Admin User...${NC}"
+    php artisan p:user:make --email="$EMAIL" --username="admin" --name-first="Admin" --name-last="User" --password="$ADMIN_PASSWORD" --admin=1
+else
+    echo -e "${YELLOW}User with email $EMAIL already exists. Skipping creation.${NC}"
+fi
 
 # Set Permissions
 # On Arch, web user is 'http'
