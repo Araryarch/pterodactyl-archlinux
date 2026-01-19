@@ -1,60 +1,122 @@
-# Pterodactyl Panel & Wings Auto-Installer for Arch Linux
+# Arch Linux Minecraft Server (Pterodactyl) Auto-Installer
 
-This repository contains scripts to automate the installation of **Pterodactyl Panel** and **Wings** on Arch Linux, specifically tailored for running a **Minecraft Server**.
+This project provides two scripts to automate the installation of a Minecraft Server Control Panel (Pterodactyl) on a fresh Arch Linux server.
 
-## Installation Flow
+**Goal:** Turn a clean Arch Linux installation into a fully functional Minecraft hosting server.
 
-To get a working Minecraft server, you need to run **both** scripts in order.
+---
 
-### Step 1: Install the Panel
-This installs the web interface where you manage your servers.
+## 🚀 Quick Start
 
-1.  Make the scripts executable:
-    ```bash
-    chmod +x install_panel.sh install_wings.sh
-    ```
-2.  Run the panel installer:
-    ```bash
-    ./install_panel.sh
-    ```
-3.  Follow the prompts. At the end, you will be able to log in to your panel (e.g., `http://panel.yourdomain.com`).
+**Assumptions:**
+*   You have a server with **Arch Linux** installed.
+*   You are logged in as **root**.
+*   You have a domain name pointing to your server's IP (e.g., `panel.example.com`).
 
-### Step 2: Install Wings (Required for Minecraft)
+### 1. Download the Scripts
+Run this command to download the installer:
+```bash
+# Install git if missing
+pacman -Sy --noconfirm git
+
+# Clone this repo (or download the files manually)
+# If you just have the files, skip to step 2.
+chmod +x install_panel.sh install_wings.sh
+```
+
+### 2. Run Panel Installer (Web Interface)
+This checks your PHP, installs the Database, Nginx, and the Panel itself.
+
+```bash
+./install_panel.sh
+```
+**Inputs Required:**
+*   **Domain Name**: Your panel domain (e.g., `panel.myserver.com`).
+*   **Email**: For the admin account.
+*   **Password**: For the admin account.
+*   **Timezone**: Defaults to `Asia/Jakarta`.
+
+---
+
+## ⏸️ STOP & CONFIGURE (Crucial Step)
+
+Before running the next script, you **MUST** configure the panel in your browser to get the "Wings Configuration".
+
+1.  **Open your Browser**: Go to `http://panel.yourdomain.com` (or your IP).
+2.  **Login**: Use the Admin credentials you created in Step 2.
+3.  **Create Location**:
+    *   Click the **Gear Icon** (Admin) -> **Locations**.
+    *   Click **Create New**.
+    *   Short Code: `home`, Description: `Home`.
+4.  **Create Node**:
+    *   Click **Nodes** -> **Create New**.
+    *   **Name**: `LocalNode`.
+    *   **FQDN**: Use `127.0.0.1` (since Wings is on the same machine).
+    *   **Use SSL Connection**: Select **"Use HTTP Connection"** (unless you already setup SSL).
+    *   **Behind Proxy**: Select **"Not behind Proxy"**.
+    *   **Daemon Port**: `8080`.
+    *   **SFTP Port**: `2022`.
+    *   **Total Memory/Disk**: Set to your server's limits (0 = unlimited).
+    *   Click **Create Node**.
+5.  **Get Configuration**:
+    *   After creating, click on the **Configuration** tab.
+    *   You will see a block of YAML code (starts with `debug: false`).
+    *   **COPY THIS TEXT**.
+
+---
+
+## 3. Run Wings Installer (Game Engine)
+
 This installs Docker and the Daemon that actually runs Minecraft.
 
-1.  Run the wings installer:
-    ```bash
-    ./install_wings.sh
-    ```
-2.  **Configuration (Crucial)**:
-    *   Log in to your new Panel.
-    *   Go to **Settings** (Gear Icon) -> **Locations** -> Create a Location (e.g. "Home").
-    *   Go to **Nodes** -> **Create New**.
-    *   Fill in details:
-        *   **Use SSL**: `Use HTTP Connection` (unless you set up SSL).
-        *   **FQDN**: `127.0.0.1` (if running panel & wings on same machine) or your Pubic IP.
-    *   **Click Create**.
-    *   Click on the **Configuration** tab of your new Node.
-    *   **Copy** the YAML code block.
-    *   **Paste** it into `/etc/pterodactyl/config.yml` on your server.
-3.  Start Wings:
-    ```bash
-    systemctl start wings
-    ```
-    (Check status with `systemctl status wings`. It should say "Active (running)").
+```bash
+./install_wings.sh
+```
 
-### Step 3: Create Minecraft Server
-1.  In the Panel, go to **Servers** -> **Create New**.
-2.  Select "Minecraft" as the game.
-3.  Select the Node you just created.
-4.  Follow the prompts to finish!
+**Inputs Required:**
+*   **"Do you have the Configuration YAML ready?"**: Type `y`.
+*   **Paste**: Paste the YAML text you copied in the previous step.
+*   Press **Ctrl+D** to save.
 
-## Requirements
-*   Fresh Arch Linux Installation.
-*   Root privileges (`sudo` or root user).
-*   Internet connection.
+**Success!** If everything worked, the Node status in your web panel should turn **Green (Heartbeat)**.
 
-## Troubleshooting
-*   **Composer Errors**: If Step 1 fails at `composer install`, check that your PHP extensions are enabled in `/etc/php/php.ini`. The script attempts to do this, but Arch updates frequently.
-*   **Docker not starting**: Run `systemctl status docker` to debug.
-*   **Wings not connecting**: Ensure your Node FQDN matches the IP/Domain you are trying to reach. If running locally/lan, `127.0.0.1` or LAN IP is best.
+---
+
+## 🎮 How to Create a Minecraft Server
+
+1.  Go to **Servers** -> **Create New**.
+2.  **Core Details**: Name your server.
+3.  **Allocation**: Select the default Port.
+4.  **Application Feature Limits**: Set CPU/RAM/Disk limits.
+5.  **Nest Configuration**:
+    *   Select **Minecraft**.
+    *   Select **Vanilla Minecraft** (or Paper/Spigot).
+6.  **Docker Configuration**: Uncheck "OOM Killer" if possible.
+7.  Click **Create Server**.
+8.  The server will install. Click on it to view the console!
+
+---
+
+## 🔧 Frequently Asked Questions
+
+### The Panel won't load?
+*   Check Nginx: `systemctl status nginx`
+*   Check PHP: `systemctl status php-fpm`
+*   Did you point your Domain to the server IP?
+
+### Wings failed to start?
+*   Run: `systemctl status wings`
+*   Check config: `cat /etc/pterodactyl/config.yml`
+*   If you missed pasting the config, paste it manually into that file and run `systemctl restart wings`.
+
+### Can't connect to Minecraft?
+*   Ensure your firewall allows traffic on the game port (usually 255655).
+*   Arch Linux firewall (iptables/ufw) might need configuration if installed.
+
+### How to use SSL (HTTPS)?
+The scripts set up HTTP by default to avoid errors. To secure it:
+```bash
+pacman -S certbot-nginx
+certbot --nginx -d panel.yourdomain.com
+```
+Then update your Node settings in the Panel to "Use SSL" and restart Wings.
