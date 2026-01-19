@@ -201,16 +201,41 @@ systemctl enable --now pteroq.service
 
 # 7. Nginx Configuration
 echo -e "${GREEN}[8/8] Configuring Nginx...${NC}"
-# Remove default nginx config if it exists ( Arch default is usually safe to keep but we need to include our own)
-# Arch nginx default is /etc/nginx/nginx.conf usually includes sites-enabled or just conf.d
-# We'll create a conf.d file.
+# Backup the default Arch nginx config which contains the conflicting "Welcome" server block
+if [[ ! -f /etc/nginx/nginx.conf.bak ]]; then
+    mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
+fi
+
+# Create a clean main configuration file
+cat <<EOF > /etc/nginx/nginx.conf
+user http;
+worker_processes auto;
+pcre_jit on;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include mime.types;
+    default_type application/octet-stream;
+    
+    sendfile on;
+    keepalive_timeout 65;
+    client_max_body_size 100m;
+    
+    # Include our Pterodactyl config
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;
+}
+EOF
 
 mkdir -p /etc/nginx/sites-available
 mkdir -p /etc/nginx/sites-enabled
 
-# We need to make sure nginx.conf includes sites-enabled.
-# Standard Arch nginx.conf often only includes /etc/nginx/conf.d/*.conf
-# We will write to /etc/nginx/conf.d/pterodactyl.conf directly.
+# Write the Pterodactyl server block
+# We use 'server_name _;' as a fallback to ensure it works on IP address access too
+
 
 cat <<EOF > /etc/nginx/conf.d/pterodactyl.conf
 server {
