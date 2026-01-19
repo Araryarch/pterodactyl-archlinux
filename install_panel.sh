@@ -165,17 +165,8 @@ echo -e "${YELLOW}Creating Admin User...${NC}"
 # We use p:user:make which is interactive, but we can try to pass arguments if supported or use tinker.
 # As of recent versions, p:user:make requires interaction.
 # Let's use a tinker command to create the user non-interactively.
-php artisan tinker <<EOF
-\$user = new \Pterodactyl\Models\User();
-\$user->email = '$EMAIL';
-\$user->name_first = 'Admin';
-\$user->name_last = 'User';
-\$user->username = 'admin';
-\$user->password = \Illuminate\Support\Facades\Hash::make('$ADMIN_PASSWORD');
-\$user->root_admin = 1;
-\$user->save();
-exit();
-EOF
+# Use the native artisan command which handles validation and UUIDs properly
+php artisan p:user:make --email="$EMAIL" --username="admin" --name-first="Admin" --name-last="User" --password="$ADMIN_PASSWORD" --admin=1
 
 # Set Permissions
 # On Arch, web user is 'http'
