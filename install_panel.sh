@@ -22,6 +22,44 @@ echo -e "${GREEN}Welcome to the Pterodactyl Panel Installer for Arch Linux!${NC}
 echo -e "${YELLOW}Please note: This script is designed for a fresh Arch Linux installation.${NC}"
 echo ""
 
+# --- RESET OPTION ---
+read -p "Do you want to COMPLETELY RESET (WIPE) any existing Pterodactyl data before installing? (y/N): " DO_RESET
+
+if [[ "$DO_RESET" =~ ^[Yy]$ ]]; then
+    echo -e "${RED}!!! DANGER ZONE !!!${NC}"
+    echo -e "${RED}This will DELETE your database, all servers, settings, and configuration.${NC}"
+    read -p "Are you ABSOLUTELY SURE? Type 'LETSGO' to confirm: " CONFIRM_RESET
+    
+    if [[ "$CONFIRM_RESET" == "LETSGO" ]]; then
+        echo -e "${RED}Wiping Pterodactyl...${NC}"
+        
+        # Stop Services
+        echo "Stopping services..."
+        systemctl stop pteroq wings nginx php-fpm || true
+        
+        # Remove Files
+        echo "Removing files..."
+        rm -rf /var/www/pterodactyl
+        rm -rf /etc/pterodactyl
+        rm -f /etc/systemd/system/pteroq.service
+        rm -f /etc/systemd/system/wings.service
+        rm -f /etc/nginx/conf.d/pterodactyl.conf
+        systemctl daemon-reload
+        
+        # Drop DB (Try mariadb first, fallback to mysql if specific version issues, but mariadb command is standard now)
+        echo "Dropping database..."
+        mariadb -u root -e "DROP DATABASE IF EXISTS panel;" || true
+        mariadb -u root -e "DROP USER IF EXISTS 'pterodactyl'@'127.0.0.1';" || true
+        
+        echo -e "${GREEN}Wipe Complete. Starting fresh installation...${NC}"
+        echo ""
+    else
+        echo -e "${GREEN}Reset cancelled. Continuing with normal installation...${NC}"
+    fi
+fi
+# --------------------
+
+
 # Gather Information
 read -p "Enter your FQDN (e.g., panel.example.com): " PANEL_URL
 read -p "Enter an email address for the admin user: " EMAIL
