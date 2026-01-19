@@ -1,138 +1,108 @@
-# Panduan Lengkap Instalasi Pterodactyl di Arch Linux (Dari Nol)
+# Arch Linux Pterodactyl Installer (Step-by-Step)
 
-Panduan ini akan membimbing kamu langkah demi langkah, mulai dari server kosong hingga server Minecraft yang bisa dimainkan.
+This guide will walk you through setting up a Minecraft Server Panel on a fresh Arch Linux system.
 
-## 📋 Persyaratan Sebelum Mulai
+**Other Languages:**
+- [Bahasa Indonesia](README-id.md)
+- [日本語 (Japanese)](README-jp.md)
 
-1.  **Server/VPS** yang sudah terinstall **Arch Linux**.
-2.  **IP Address** server kamu (contoh: `103.123.45.67`).
-3.  **Domain**: Kalau belum punya domain, **PAKAI IP ADDRESS SAJA** tidak masalah. Nanti aksesnya lewat IP (contoh: `http://103.123.45.67`).
-4.  Koneksi SSH ke server (sebagai `root`).
+## 📋 Prerequisites
+
+1.  **Server/VPS** running **Arch Linux**.
+2.  **IP Address** of your server (e.g., `103.123.45.67`).
+3.  **Domain**: Recommended but not required. If you don't have one, **use your Server IP**.
+4.  **Root Access** (SSH as `root`).
 
 ---
 
-## 🚀 Langkah 1: Persiapan Server & File
+## 🚀 Step 1: Preparation
 
-Login ke server kamu menggunakan SSH/Terminal:
+SSH into your server:
 ```bash
-ssh root@ip-server-kamu
+ssh root@your-server-ip
 ```
 
-Setelah masuk, download skrip installer ini:
+Download the scripts (Clone this repo or copy files manually):
 ```bash
-# Install Git jika belum ada
 pacman -Sy --noconfirm git
-
-# Download skrip (Ganti URL ini dengan link repo kamu)
-git clone https://github.com/username/repo-ini.git
-cd repo-ini
-
-# Berikan izin eksekusi
+git clone https://github.com/your-username/your-repo.git
+cd your-repo
 chmod +x install_panel.sh install_wings.sh
 ```
 
 ---
 
-## 💿 Langkah 2: Instalasi Panel (Web Interface)
+## 💿 Step 2: Install Panel (Web Interface)
 
-Ini adalah tahap instalasi "Website" tempat kamu mengatur segalanya.
+This installs the website where you manage your servers.
 
-1.  Jalankan perintah:
+1.  Run the panel installer:
     ```bash
     ./install_panel.sh
     ```
-2.  Script akan meminta input. Isi sesuai dangan data kamu:
-    *   **FQDN / URL**: Masukkan domain kamu (misal: `panel.domainku.com`). **Jika tidak punya domain, masukkan IP PUBLIC server kamu** (misal: `103.123.45.67`).
-    *   **Email**: Masukkan email kamu (ini untuk login Admin nanti).
-    *   **Admin Password**: Buat password untuk login Admin Dashboard.
-    *   **Database Password**: Tekan *Enter* aja (biar auto-generate).
-    *   **Timezone**: Tekan *Enter* aja (default Asia/Jakarta).
+2.  Enter the required details:
+    *   **FQDN / URL**: Enter your domain (e.g., `panel.example.com`). **If you don't have a domain, enter your Public IP**.
+    *   **Email**: For the admin login.
+    *   **Password**: For the admin login.
+    *   **Database Password**: Press Enter to auto-generate.
+    *   **Timezone**: Press Enter for default.
 
-3.  Tunggu proses instalasi selesai (bisa 5-10 menit tergantung internet server).
-4.  Jika sukses, akan muncul pesan:
-    **"Installation Complete! You can now access your Pterodactyl Panel..."**
+3.  Wait for the installation to complete.
 
 ---
 
-## 🛠️ Langkah 3: Login & Konfigurasi Awal (PENTING!)
+## 🛠️ Step 3: Web Configuration (CRITICAL!)
 
-Disini banyak orang bingung. Jangan jalankan script kedua dulu! Kita harus setting Panel via Browser.
+**STOP!** Do not run the second script yet. You must configure the panel in your browser first.
 
-1.  Buka browser (Chrome/Edge) di laptop kamu.
-2.  Ketik alamat panel kamu.
-    *   Kalau pakai IP: `http://103.123.45.67`
-    *   Kalau pakai Domain: `http://panel.domainku.com`
-3.  **Login** menggunakan Email dan Password yang kamu buat di Langkah 2.
+1.  Open your browser and visit your Panel URL (e.g. `http://103.123.45.67`).
+2.  **Login** with the credentials created in Step 2.
 
-### Registrasi "Node" (Mesin Server)
-Agar panel bisa mengontrol server ini, kita harus mendaftarkannya sebagai "Node".
-
-1.  Klik ikon **Gear (Gerigi)** di pojok kanan atas untuk masuk ke **Admin View**.
-2.  Di menu kiri, pilih **Locations** -> klik **Create New**.
+### Create a "Node"
+1.  Click the **Gear Icon** (top right) to enter Admin View.
+2.  Go to **Locations** -> **Create New**.
     *   Short Code: `home`
-    *   Description: `Server Rumah`
-    *   Klik **Create**.
-3.  Di menu kiri, pilih **Nodes** -> klik **Create New**.
+    *   Description: `Home Server`
+    *   Click **Create**.
+3.  Go to **Nodes** -> **Create New**.
     *   **Name**: `LocalNode`
-    *   **Location**: Pilih `home`.
-    *   **FQDN**: Tulis `127.0.0.1` (**PENTING**: Gunakan `127.0.0.1` karena Wings dan Panel ada di satu server yang sama. Jangan pakai IP Publik disini biar koneksinya lokal dan lancar).
-    *   **Communicate Over SSL**: Pilih `Use HTTP Connection` (Kecuali kamu sudah pasang SSL/HTTPS).
-    *   **Behind Proxy**: Pilih `Not behind Proxy`.
-    *   **Daemon Port**: `8080`.
-    *   **SFTP Port**: `2022`.
-    *   **Total Memory**: Isi `0` (untuk unlimited) atau sesuai RAM server.
-    *   **Total Disk Space**: Isi `0` (untuk unlimited).
-    *   Klik **Create Node**.
+    *   **Location**: local
+    *   **FQDN**: Enter `127.0.0.1` (**IMPORTANT**: Use 127.0.0.1 since Wings is on the same machine).
+    *   **Communicate Over SSL**: Select `Use HTTP Connection`.
+    *   **Daemon Port**: `8080`, **SFTP Port**: `2022`.
+    *   **Memory/Disk**: Set to `0` (unlimited).
+    *   Click **Create Node**.
 
-### Ambil Kode Konfigurasi
-1.  Setelah Node jadi, kamu akan melihat tab menu diatasnya: **Settings**, **Configuration**, **Allocation**.
-2.  Klik tab **Configuration**.
-3.  Kamu akan melihat kotak kode `YAML` (teks yang dimulai dengan `debug: false`...).
-4.  **Copy** semua teks itu. Kita butuh ini untuk Langkah 4.
+### Get Configuration
+1.  After creating the Node, click the **Configuration** tab.
+2.  **Copy** the YAML code block shown there.
 
 ---
 
-## 🦋 Langkah 4: Instalasi Wings (Mesin Game)
+## 🦋 Step 4: Install Wings (Game Engine)
 
-Kembali ke terminal/SSH server kamu.
+Back in your terminal:
 
-1.  Jalankan perintah:
+1.  Run the wings installer:
     ```bash
     ./install_wings.sh
     ```
-2.  Script akan bertanya:
-    *   **"Do you have the Configuration YAML ready?"**: Ketik `y` lalu tekan *Enter*.
-    *   **Paste**: Paste kode yang tadi kamu copy dari browser.
-    *   **Simpan**: Setelah paste, tekan `Ctrl + D`.
-        *(Catatan: Di beberapa terminal Windows, kamu mungkin perlu tekan Enter dulu sekali baru Ctrl+D untuk mengirim sinyal EOF).*
+2.  The script will ask: **"Do you have the Configuration YAML ready?"**
+    *   Type `y` and Enter.
+    *   **Paste** the YAML code you copied from the browser.
+    *   Press `Ctrl+D` to save.
 
-3.  Script akan menginstall Docker dan menjalankan Wings.
-4.  Jika sukses, script akan bilang **"Wings should now be running!"**.
-
-**Cek Status:**
-Kembali ke Browser -> Menu **Nodes**. Lihat indikator di sebelah nama Node kamu. Jika warnanya **HIJAU** (icon jantung berdetak), artinya sukses!
+3.  If successful, the Node indicator in your browser should turn **Green**.
 
 ---
 
-## 🎮 Langkah 5: Buat Server Minecraft
+## 🎮 Step 5: Create Minecraft Server
 
-Sekarang semuanya sudah siap. Waktunya membuat server game.
+1.  In the Admin Panel, go to **Servers** -> **Create New**.
+2.  Fill in the details:
+    *   **Name**: `My Minecraft Server`
+    *   **Owner**: Select your admin account.
+    *   **Nest/Egg**: Select `Minecraft` -> `Vanilla Minecraft`.
+3.  Click **Create Server**.
 
-1.  Di Panel Admin, klik menu **Servers** -> **Create New**.
-2.  **Core Details**:
-    *   **Server Name**: `Survival SMP` (bebas).
-    *   **Server Owner**: Ketik email kamu (admin) lalu pilih user yang muncul.
-3.  **Allocation Management**:
-    *   Pilih IP dan Port yang tersedia (biasanya sudah otomatis terpilih).
-4.  **Application Feature Limits**:
-    *   Tentukan RAM (misal `2048` untuk 2GB).
-5.  **Nest Configuration**:
-    *   **Nest**: Pilih `Minecraft`.
-    *   **Egg**: Pilih `Vanilla Minecraft` (atau Paper/Spigot jika mau plugin).
-6.  **Docker Configuration**:
-    *   Biarkan default.
-7.  Klik tombol **Create Server** di paling bawah.
-
-Server akan mulai proses "Installing". Klik nama servernya untuk melihat Console. Tunggu sampai selesai download jar, dan **Start** servernya.
-
-**Selamat! Kamu sudah punya server Minecraft sendiri!**
+The server will install and you can inspect it via the Console. Enjoy!
