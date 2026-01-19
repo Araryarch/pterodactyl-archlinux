@@ -155,12 +155,20 @@ fi
 systemctl enable --now redis
 
 # MariaDB
-echo -e "${YELLOW}Initializing MariaDB data directory...${NC}"
-mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql || echo -e "${YELLOW}MariaDB data directory might already exist, skipping...${NC}"
-systemctl enable --now mariadb
+echo -e "${YELLOW}Initializing MariaDB...${NC}"
 
-# Wait for MariaDB to start
-sleep 5
+if [[ -d "/var/lib/mysql/mysql" ]]; then
+    echo -e "${YELLOW}MariaDB data directory exists. Running upgrade instead of install...${NC}"
+    systemctl enable --now mariadb
+    # Wait for MariaDB to start before upgrading
+    sleep 5
+    mariadb-upgrade -u root --force || echo "MariaDB upgrade not needed or failed (non-critical if DB works)."
+else
+    echo -e "${GREEN}Installing fresh MariaDB data directory...${NC}"
+    mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+    systemctl enable --now mariadb
+    sleep 5
+fi
 
 # Create Database and User
 echo -e "${GREEN}[4/8] Setting up Database...${NC}"
