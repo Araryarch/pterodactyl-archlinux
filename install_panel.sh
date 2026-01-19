@@ -104,11 +104,17 @@ sed -i 's/memory_limit = .*/memory_limit = 512M/' "$PHP_INI"
 echo -e "${GREEN}[3/8] Starting services...${NC}"
 
 # Redis
+# Handle possible "linked unit file" errors from previous bad states
+if [[ -L "/etc/systemd/system/redis.service" ]]; then
+    echo -e "${YELLOW}Removing conflicting redis.service symlink...${NC}"
+    rm "/etc/systemd/system/redis.service"
+    systemctl daemon-reload
+fi
 systemctl enable --now redis
 
 # MariaDB
 echo -e "${YELLOW}Initializing MariaDB data directory...${NC}"
-mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql || echo -e "${YELLOW}MariaDB data directory might already exist, skipping...${NC}"
 systemctl enable --now mariadb
 
 # Wait for MariaDB to start
