@@ -258,6 +258,12 @@ if [[ ! -f /etc/nginx/nginx.conf.bak ]]; then
     mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
 fi
 
+# Stop Nginx if it's running to prevent "Address already in use" errors during config changes
+if systemctl is-active --quiet nginx; then
+    echo -e "${YELLOW}Stopping Nginx to apply new changes...${NC}"
+    systemctl stop nginx
+fi
+
 # Create a clean main configuration file
 cat <<EOF > /etc/nginx/nginx.conf
 user http;
@@ -271,6 +277,10 @@ events {
 http {
     include mime.types;
     default_type application/octet-stream;
+    
+    # Fix "could not build optimal types_hash" warning
+    types_hash_max_size 2048;
+    types_hash_bucket_size 128;
     
     sendfile on;
     keepalive_timeout 65;
