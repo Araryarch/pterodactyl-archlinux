@@ -56,6 +56,7 @@ PACKAGES=(
     php-fpm
     php-gd
     php-intl
+    php-sodium
     composer
 )
 
@@ -86,8 +87,8 @@ PHP_INI="/etc/php/php.ini"
 cp "$PHP_INI" "$PHP_INI.bak"
 
 # Uncomment extensions
-# Extensions: bcmath, curl, gd, intl, mbstring, mysqli, openssl, pdo_mysql, sodium, zip
-EXTENSIONS=("bcmath" "curl" "gd" "intl" "mbstring" "mysqli" "openssl" "pdo_mysql" "sodium" "zip")
+# Extensions: bcmath, curl, gd, intl, mbstring, mysqli, openssl, pdo_mysql, sodium, zip, iconv, exif
+EXTENSIONS=("bcmath" "curl" "gd" "intl" "mbstring" "mysqli" "openssl" "pdo_mysql" "sodium" "zip" "iconv" "exif")
 
 for ext in "${EXTENSIONS[@]}"; do
     sed -i "s/;extension=$ext/extension=$ext/" "$PHP_INI"
