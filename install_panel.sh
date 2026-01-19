@@ -62,6 +62,10 @@ fi
 
 # Gather Information
 read -p "Enter your FQDN (e.g., panel.example.com): " PANEL_URL
+# Sanitize URL: Remove http:// or https:// if user typed it
+PANEL_URL=${PANEL_URL#http://}
+PANEL_URL=${PANEL_URL#https://}
+PANEL_URL=${PANEL_URL%/}
 read -p "Enter an email address for the admin user: " EMAIL
 read -s -p "Enter a password for the admin user: " ADMIN_PASSWORD
 echo ""
@@ -322,6 +326,11 @@ EOF
 # Restart Nginx and PHP-FPM
 systemctl restart php-fpm
 systemctl enable --now nginx
+
+# Test Nginx Config first
+echo -e "${YELLOW}Testing Nginx Configuration...${NC}"
+nginx -t
+
 systemctl restart nginx
 
 echo -e "${GREEN}Installation Complete!${NC}"
